@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
         mHandler = new Handler();
         initView();
         initEvent();
+
     }
 
     private void initView() {
