@@ -2,6 +2,7 @@ package com.aspsine.myapptiming;
 
 /**
  * Created by Administrator on 2016/6/13.
+ * 这货就是来转换时间格式的
  */
 public class TimeUtil {
     public static String getTime(int time) {

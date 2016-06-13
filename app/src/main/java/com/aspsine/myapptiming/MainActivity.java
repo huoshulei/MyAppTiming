@@ -14,15 +14,15 @@ import java.io.IOException;
 import cn.qqtheme.framework.picker.TimePicker;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
     TextView   tv_time;
     TextView   tv_start;
     TextView   tv_finish;
     MyRunnable mRunnable;
     Handler    mHandler;
     int     time    = 0;
-    boolean isPause = false;
+    boolean isPause = false;//是否暂停
     private MediaPlayer mPlayer;
+    boolean isRuning = false;//是否运行中
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,35 +46,53 @@ public class MainActivity extends AppCompatActivity {
         tv_time.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TimePicker picker = new TimePicker(MainActivity.this, TimePicker.HOUR_OF_DAY);
-                picker.setLineVisible(false);
-                picker.setOnTimePickListener(new TimePicker.OnTimePickListener() {
-                    @Override
-                    public void onTimePicked(String hour, String minute) {
-                        tv_time.setText(hour + ":" + minute + ":" + "00");
+                if (!isRuning) {
+                    /**这货就是一个第三方的滚轮选择器*/
+                    TimePicker picker = new TimePicker(MainActivity.this, TimePicker.HOUR_OF_DAY);
+                    picker.setLineVisible(false);
+                    picker.setOnTimePickListener(new TimePicker.OnTimePickListener() {
+                        @Override
+                        public void onTimePicked(String hour, String minute) {
+                            tv_time.setText(hour + ":" + minute + ":" + "00");
 //                        time = Integer.valueOf(hour) * 60 * 60 + Integer.valueOf(minute) * 60;
-                    }
-                });
-                picker.show();
+                        }
+                    });
+                    picker.show();
+                }
             }
         });
         tv_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!isPause) {
-                    time = TimeUtil.getIntTime(tv_time.getText().toString());
+                    time = TimeUtil.getIntTime(tv_time.getText()
+                            .toString());
                     if (time > 0) {
-                        mRunnable = new MyRunnable(mHandler, MainActivity.this.time) {
+                        isRuning = true;
+                        mRunnable = new MyRunnable(mHandler,
+                                MainActivity.this.time) {
+                            /**
+                             * 启动音乐
+                             */
                             @Override
                             protected void onPlayNotification() {
                                 onPlay();
                             }
 
+                            /**
+                             * 结束时调用
+                             */
                             @Override
                             protected void overTime() {
+                                isPause = false;
+                                isRuning = false;
+                                mPlayer.stop();
                                 tv_start.setText("开始");
                             }
 
+                            /**
+                             * 更新显示时间
+                             */
                             @Override
                             public void turnoverTime(int time) {
                                 tv_time.setText(TimeUtil.getTime(time));
@@ -92,19 +110,25 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        /**结束计时 并归零*/
         tv_finish.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 time = 0;
                 mHandler.removeCallbacks(mRunnable);
                 tv_time.setText(TimeUtil.getTime(0));
-                mPlayer.stop();
+                if (mPlayer != null)
+                    mPlayer.stop();
                 isPause = false;
+                isRuning = false;
                 tv_start.setText("开始");
             }
         });
     }
 
+    /**
+     * 音乐播放
+     */
     private void onPlay() {
         try {
             AssetFileDescriptor fd = getAssets().openFd("music/om.mp3");
@@ -116,4 +140,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+
 }

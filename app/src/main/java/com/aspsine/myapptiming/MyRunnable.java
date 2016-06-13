@@ -4,6 +4,7 @@ import android.os.Handler;
 
 /**
  * Created by Administrator on 2016/6/13.
+ * 貌似重点店在这儿
  */
 public abstract class MyRunnable implements Runnable {
     Handler mHandler;
