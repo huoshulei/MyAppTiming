@@ -93,7 +93,8 @@ public class MainActivity extends AppCompatActivity {
                             protected void overTime() {
                                 isPause = false;
                                 isRuning = false;
-                                mPlayer.stop();
+                                if (mPlayer != null)
+                                    mPlayer.stop();
                                 tv_start.setText("开始");
                             }
 
