@@ -5,6 +5,7 @@ import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
@@ -43,25 +44,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initEvent() {
-        tv_time.setOnClickListener(new View.OnClickListener() {
+        tv_time.setOnClickListener(getTimeListener());
+        tv_start.setOnClickListener(getStartListener());
+        /**结束计时 并归零*/
+        tv_finish.setOnClickListener(getFinishListener());
+    }
+
+    @NonNull
+    private View.OnClickListener getFinishListener() {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isRuning) {
-                    /**这货就是一个第三方的滚轮选择器*/
-                    TimePicker picker = new TimePicker(MainActivity.this, TimePicker.HOUR_OF_DAY);
-                    picker.setLineVisible(false);
-                    picker.setOnTimePickListener(new TimePicker.OnTimePickListener() {
-                        @Override
-                        public void onTimePicked(String hour, String minute) {
-                            tv_time.setText(hour + ":" + minute + ":" + "00");
-//                        time = Integer.valueOf(hour) * 60 * 60 + Integer.valueOf(minute) * 60;
-                        }
-                    });
-                    picker.show();
-                }
+                time = 0;
+                mHandler.removeCallbacks(mRunnable);
+                tv_time.setText(TimeUtil.getTime(0));
+                if (mPlayer != null)
+                    mPlayer.stop();
+                isPause = false;
+                isRuning = false;
+                tv_start.setText("开始");
             }
-        });
-        tv_start.setOnClickListener(new View.OnClickListener() {
+        };
+    }
+
+    @NonNull
+    private View.OnClickListener getStartListener() {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!isPause) {
@@ -69,8 +77,7 @@ public class MainActivity extends AppCompatActivity {
                             .toString());
                     if (time > 0) {
                         isRuning = true;
-                        mRunnable = new MyRunnable(mHandler,
-                                MainActivity.this.time) {
+                        mRunnable = new MyRunnable(mHandler, time) {
                             /**
                              * 启动音乐
                              */
@@ -109,21 +116,29 @@ public class MainActivity extends AppCompatActivity {
                     tv_start.setText("继续");
                 }
             }
-        });
-        /**结束计时 并归零*/
-        tv_finish.setOnClickListener(new View.OnClickListener() {
+        };
+    }
+
+    @NonNull
+    private View.OnClickListener getTimeListener() {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                time = 0;
-                mHandler.removeCallbacks(mRunnable);
-                tv_time.setText(TimeUtil.getTime(0));
-                if (mPlayer != null)
-                    mPlayer.stop();
-                isPause = false;
-                isRuning = false;
-                tv_start.setText("开始");
+                if (!isRuning) {
+                    /**这货就是一个第三方的滚轮选择器*/
+                    TimePicker picker = new TimePicker(MainActivity.this, TimePicker.HOUR_OF_DAY);
+                    picker.setLineVisible(false);
+                    picker.setOnTimePickListener(new TimePicker.OnTimePickListener() {
+                        @Override
+                        public void onTimePicked(String hour, String minute) {
+                            tv_time.setText(hour + ":" + minute + ":" + "00");
+//                        time = Integer.valueOf(hour) * 60 * 60 + Integer.valueOf(minute) * 60;
+                        }
+                    });
+                    picker.show();
+                }
             }
-        });
+        };
     }
 
     /**
